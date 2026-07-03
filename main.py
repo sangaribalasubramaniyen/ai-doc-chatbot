@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
@@ -30,7 +31,7 @@ class Question(BaseModel):
 
 @app.get("/")
 def home():
-    return {"message": "AI Document Q&A Chatbot API is running"}
+    return FileResponse("index.html")
 
 @app.post("/ask")
 def ask(question: Question):
