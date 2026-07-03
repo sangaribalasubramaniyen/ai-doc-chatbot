@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.embeddings import FastEmbedEmbeddings
 from langchain_chroma import Chroma
 
 load_dotenv("config.env")
@@ -18,9 +18,9 @@ splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
 chunks = splitter.split_documents(documents)
 print(f"Created {len(chunks)} chunks")
 
-# 3. Create embeddings (free, runs locally)
-print("Loading embedding model (first time downloads ~90MB)...")
-embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+# 3. Create embeddings (free, lightweight - uses ONNX, not PyTorch)
+print("Loading embedding model...")
+embeddings = FastEmbedEmbeddings()
 
 # 4. Store in Chroma vector database
 print("Storing in vector database...")

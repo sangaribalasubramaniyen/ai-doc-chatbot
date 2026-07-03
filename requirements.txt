@@ -3,9 +3,8 @@ uvicorn
 langchain
 langchain-community
 langchain-groq
-langchain-huggingface
 langchain-chroma
 chromadb
 pypdf
-sentence-transformers
+fastembed
 python-dotenv
