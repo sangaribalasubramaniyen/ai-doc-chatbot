@@ -3,3 +3,4 @@ config.env
 db/
 __pycache__/
 *.pyc
+uploaded.pdf
