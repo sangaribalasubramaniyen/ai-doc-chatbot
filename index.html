@@ -1,241 +1,219 @@
- <!DOCTYPE html>
-  <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Document Q&A Chatbot</title>
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body {
-        font-family: 'Segoe UI', Arial, sans-serif;
-        background: linear-gradient(135deg, #232526 0%, #414345 100%);
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 16px;
-      }
-      .card {
-        background: #1e293b;
-        width: 100%;
-        max-width: 560px;
-        padding: 28px;
-        border-radius: 16px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-      }
-      h1 {
-        font-size: 1.5rem;
-        color: #ffffff;
-        text-align: center;
-        margin-bottom: 6px;
-      }
-      .subtitle {
-        text-align: center;
-        color: #94a3b8;
-        font-size: 0.9rem;
-        margin-bottom: 22px;
-      }
-      input {
-        width: 100%;
-        padding: 14px;
-        font-size: 1rem;
-        background: #0f172a;
-        color: #f1f5f9;
-        border: 2px solid #334155;
-        border-radius: 10px;
-        outline: none;
-      }
-      input::placeholder { color: #94a3b8; }
-      input:focus { border-color: #667eea; }
-      /* A labelled step box */
-      .step {
-        background: #172033;
-        border: 1px solid #334155;
-        border-radius: 12px;
-        padding: 18px;
-        margin-bottom: 18px;
-      }
-      .step-label {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-        color: #94a3b8;
-        margin-bottom: 12px;
-      }
-      .step-num {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        background: #667eea;
-        color: #fff;
-        font-size: 0.8rem;
-      }
-      /* Make the file picker match the dark theme */
-      input[type="file"] {
-        padding: 10px;
-        cursor: pointer;
-      }
-      input[type="file"]::file-selector-button {
-        background: #334155;
-        color: #f1f5f9;
-        border: none;
-        padding: 8px 14px;
-        border-radius: 8px;
-        margin-right: 12px;
-        cursor: pointer;
-        font-weight: 600;
-      }
-      input[type="file"]::file-selector-button:hover { background: #475569; }
-      /* Green "document ready" banner (hidden until upload succeeds) */
-      #docBanner {
-        display: none;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        background: #052e1a;
-        border: 1px solid #15803d;
-        border-radius: 12px;
-        padding: 14px 16px;
-        margin-bottom: 18px;
-        color: #86efac;
-        font-size: 0.9rem;
-      }
-      #changeDocBtn {
-        width: auto;
-        margin: 0;
-        padding: 6px 14px;
-        font-size: 0.8rem;
-        background: #334155;
-        flex-shrink: 0;
-      }
-      #changeDocBtn:hover { background: #475569; }
-      button {
-        width: 100%;
-        padding: 14px;
-        margin-top: 12px;
-        font-size: 1rem;
-        font-weight: 600;
-        background: #667eea;
-        color: #fff;
-        border: none;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: background 0.2s;
-      }
-      button:hover { background: #5568d3; }
-      button:disabled { background: #aaa; cursor: not-allowed; }
-      #answer {
-        margin-top: 20px;
-        padding: 16px;
-        background: #0f172a;
-        border-left: 4px solid #667eea;
-        border-radius: 8px;
-        color: #e2e8f0;
-        line-height: 1.6;
-        white-space: pre-wrap;
-        min-height: 24px;
-        display: none;
-      }
-      /* Mobile screens */
-      @media (max-width: 480px) {
-        .card { padding: 20px; }
-        h1 { font-size: 1.25rem; }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="card">
-      <h1>📄 AI Document Q&A Chatbot</h1>
-      <p class="subtitle">Ask anything about the document</p>
-      <div class="step" id="uploadStep">
-        <div class="step-label"><span class="step-num">1</span> Upload a document</div>
-        <input id="fileInput" type="file" accept=".pdf" />
-        <button id="uploadBtn" onclick="uploadPDF()">Upload PDF</button>
-        <div id="status" style="text-align:center;color:#94a3b8;font-size:0.85rem;margin-top:10px;"></div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Document Q&A Chatbot</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg:      #0f172a;   /* page background  */
+      --surface: #1e293b;   /* chat panel       */
+      --bot:     #334155;   /* bot bubble       */
+      --user:    #6366f1;   /* user bubble      */
+      --accent:  #818cf8;   /* highlights       */
+      --text:    #e2e8f0;
+      --muted:   #94a3b8;
+      --border:  #334155;
+    }
+    body {
+      font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    /* The chat window */
+    .chat {
+      width: 100%;
+      max-width: 620px;
+      height: 88vh;
+      background: var(--surface);
+      border-radius: 18px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    /* ---- Header ---- */
+    header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    header h1 { font-size: 1.05rem; color: #fff; flex: 1; }
+    header .dot { width: 9px; height: 9px; border-radius: 50%; background: #22c55e; }
+    /* Upload control lives in the header */
+    #uploadWrap { display: flex; align-items: center; gap: 8px; }
+    #fileInput { display: none; }
+    .btn-sm {
+      font-size: 0.8rem; font-weight: 600; cursor: pointer;
+      background: var(--bot); color: var(--text);
+      border: none; border-radius: 8px; padding: 8px 12px;
+    }
+    .btn-sm:hover { background: #475569; }
+    /* Green "uploaded" state for the button */
+    .btn-sm.done { background: #052e1a; color: #86efac; border: 1px solid #15803d; }
+    .btn-sm.done:hover { background: #063b21; }
+    /* ---- Messages ---- */
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .msg { max-width: 78%; padding: 12px 16px; border-radius: 16px; line-height: 1.55; font-size: 0.95rem; white-space: pre-wrap; }
+    .msg.user { align-self: flex-end;   background: var(--user); color: #fff; border-bottom-right-radius: 4px; }
+    .msg.bot  { align-self: flex-start; background: var(--bot);  color: var(--text); border-bottom-left-radius: 4px; }
+    .empty { margin: auto; text-align: center; color: var(--muted); font-size: 0.9rem; }
+    .empty .big { font-size: 2.5rem; margin-bottom: 10px; }
+    /* Typing indicator (three bouncing dots) */
+    .typing { display: flex; gap: 5px; align-items: center; }
+    .typing span {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--muted);
+      animation: bounce 1.2s infinite ease-in-out;
+    }
+    .typing span:nth-child(2) { animation-delay: 0.15s; }
+    .typing span:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes bounce { 0%,60%,100% { transform: translateY(0); opacity: .5; } 30% { transform: translateY(-6px); opacity: 1; } }
+    /* ---- Input bar ---- */
+    footer {
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+    }
+    #query {
+      flex: 1;
+      padding: 13px 16px;
+      font-size: 0.95rem;
+      background: var(--bg);
+      color: var(--text);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      outline: none;
+    }
+    #query:focus { border-color: var(--accent); }
+    #query:disabled { opacity: 0.5; }
+    #sendBtn {
+      width: 48px;
+      border: none;
+      border-radius: 12px;
+      background: var(--user);
+      color: #fff;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+    #sendBtn:hover { background: #4f46e5; }
+    #sendBtn:disabled { background: #475569; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <div class="chat">
+    <header>
+      <span class="dot"></span>
+      <h1>📄 AI Document Q&amp;A</h1>
+      <div id="uploadWrap">
+        <input id="fileInput" type="file" accept=".pdf" onchange="uploadPDF()" />
+        <button id="uploadBtn" class="btn-sm" onclick="document.getElementById('fileInput').click()">Upload PDF</button>
       </div>
+    </header>
 
-      <div id="docBanner">
-        <span id="docBannerText"></span>
-        <button id="changeDocBtn" onclick="changeDoc()">Change</button>
-      </div>
-
-      <div class="step">
-        <div class="step-label"><span class="step-num">2</span> Ask a question</div>
-        <input id="query" type="text" placeholder="e.g. What skills does the person have?" />
-        <button id="askBtn" onclick="ask()">Ask</button>
-        <div id="answer"></div>
+    <div id="messages">
+      <div class="empty" id="emptyState">
+        <div class="big">💬</div>
+        Upload a PDF, then ask me anything about it.
       </div>
     </div>
 
-    <script>
-      const input = document.getElementById("query");
-      const btn = document.getElementById("askBtn");
-      const answerDiv = document.getElementById("answer");
-      const statusDiv = document.getElementById("status");
+    <footer>
+      <input id="query" type="text" placeholder="Ask a question…" disabled />
+      <button id="sendBtn" onclick="ask()" disabled>➤</button>
+    </footer>
+  </div>
 
-      const uploadStep = document.getElementById("uploadStep");
-      const docBanner = document.getElementById("docBanner");
-      const docBannerText = document.getElementById("docBannerText");
+  <script>
+    const messages  = document.getElementById("messages");
+    const emptyState = document.getElementById("emptyState");
+    const query     = document.getElementById("query");
+    const sendBtn   = document.getElementById("sendBtn");
+    const uploadBtn = document.getElementById("uploadBtn");
 
-      async function uploadPDF() {
-        const fileInput = document.getElementById("fileInput");
-        if (!fileInput.files.length) { statusDiv.innerText = "Please choose a PDF first."; return; }
-        const fileName = fileInput.files[0].name;
-        const formData = new FormData();
-        formData.append("file", fileInput.files[0]);
-        statusDiv.innerText = "Uploading & indexing...";
-        try {
-          const res = await fetch("/upload", { method: "POST", body: formData });
-          const data = await res.json();
-          // Success: hide the upload box, show the ready banner
-          uploadStep.style.display = "none";
-          docBannerText.innerText = "✓ " + fileName + " is ready. Ask away!";
-          docBanner.style.display = "flex";
-        } catch (err) {
-          statusDiv.innerText = "Upload failed. Is the server running?";
-        }
+    // Add a message bubble to the chat and scroll down
+    function addBubble(text, who) {
+      const div = document.createElement("div");
+      div.className = "msg " + who;
+      div.innerText = text;
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
+      return div;
+    }
+
+    async function uploadPDF() {
+      const fileInput = document.getElementById("fileInput");
+      if (!fileInput.files.length) return;
+      const fileName = fileInput.files[0].name;
+      const formData = new FormData();
+      formData.append("file", fileInput.files[0]);
+
+      // Button shows progress
+      uploadBtn.innerText = "Indexing…";
+      uploadBtn.classList.remove("done");
+
+      try {
+        await fetch("/upload", { method: "POST", body: formData });
+        // Button turns green and reads "✓ Uploaded"
+        uploadBtn.innerText = "✓ Uploaded";
+        uploadBtn.classList.add("done");
+        // Unlock the chat
+        if (emptyState) emptyState.remove();
+        query.disabled = false;
+        sendBtn.disabled = false;
+        query.focus();
+      } catch (err) {
+        uploadBtn.innerText = "Retry upload";
       }
+    }
 
-      // "Change" button — bring the upload box back
-      function changeDoc() {
-        docBanner.style.display = "none";
-        uploadStep.style.display = "block";
-        statusDiv.innerText = "";
-        document.getElementById("fileInput").value = "";
+    async function ask() {
+      const text = query.value.trim();
+      if (!text) return;
+
+      addBubble(text, "user");
+      query.value = "";
+      query.disabled = true;
+      sendBtn.disabled = true;
+
+      // Show the typing indicator
+      const typing = addBubble("", "bot");
+      typing.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+
+      try {
+        const res = await fetch("/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: text })
+        });
+        const data = await res.json();
+        typing.innerText = data.answer;          // replace dots with the real answer
+      } catch (err) {
+        typing.innerText = "⚠️ Couldn't reach the server. Is uvicorn running?";
+      } finally {
+        query.disabled = false;
+        sendBtn.disabled = false;
+        query.focus();
+        messages.scrollTop = messages.scrollHeight;
       }
+    }
 
-      // Press Enter to ask
-      input.addEventListener("keydown", (e) => { if (e.key === "Enter") ask(); });
-
-      async function ask() {
-        const query = input.value.trim();
-        if (!query) return;
-        answerDiv.style.display = "block";
-        answerDiv.innerText = "Thinking...";
-        btn.disabled = true;
-        btn.innerText = "Thinking...";
-        try {
-          const res = await fetch("/ask", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ query: query })
-          });
-          const data = await res.json();
-          answerDiv.innerText = data.answer;
-        } catch (err) {
-          answerDiv.innerText = "Error: could not reach the server. Is uvicorn running?";
-        } finally {
-          btn.disabled = false;
-          btn.innerText = "Ask";
-        }
-      }
-    </script>
-  </body>
-  </html>
+    // Press Enter to send
+    query.addEventListener("keydown", (e) => { if (e.key === "Enter") ask(); });
+  </script>
+</body>
+</html>
